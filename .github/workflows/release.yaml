@@ -1,4 +1,7 @@
-on: release
+on: 
+  release:
+    types: 
+      - created
 name: Build Release
 jobs:
   release-linux-amd64:
@@ -9,6 +12,7 @@ jobs:
     - name: compile and release
       uses: ngs/go-release.action@v1.0.2
       env:
+        CGO_ENABLED: 0
         GOARCH: amd64
         GOOS: linux
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -21,6 +25,7 @@ jobs:
     - name: compile and release
       uses: ngs/go-release.action@v1.0.2
       env:
+        CGO_ENABLED: 0
         GOARCH: amd64
         GOOS: darwin
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
