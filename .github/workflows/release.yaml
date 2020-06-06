@@ -11,6 +11,8 @@ jobs:
       env:
         GOARCH: amd64
         GOOS: linux
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        EXTRA_FILES: "LICENSE"
   release-darwin-amd64:
     name: release darwin/amd64
     runs-on: ubuntu-latest
@@ -21,4 +23,6 @@ jobs:
       env:
         GOARCH: amd64
         GOOS: darwin
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        EXTRA_FILES: "LICENSE"
   
