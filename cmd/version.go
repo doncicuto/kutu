@@ -34,9 +34,9 @@ var versionCmd = &cobra.Command{
 	Long:  "Kutu's version number",
 	Run: func(cmd *cobra.Command, args []string) {
 		if shortVersion {
-			fmt.Println("v0.1.0")
+			fmt.Println("v0.1.1")
 		} else {
-			fmt.Println("Kutu (K8s Useful Tools Updater) v0.1.0")
+			fmt.Println("Kutu (K8s Useful Tools Updater) v0.1.1")
 		}
 	},
 }
