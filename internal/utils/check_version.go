@@ -1,73 +1,89 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"strings"
 
+	"github.com/google/go-github/github"
+
 	"github.com/muultipla/kutu/internal/config"
-	"github.com/tcnksm/go-latest"
 )
 
-// CheckVersion checks if our current version is outdated
-// using tcnksm's awesome go-latest package.
-// CheckVersion gets our current version and formats it
-func CheckVersion(binary string, info config.BinaryConfig, current string) (*latest.CheckResponse, error) {
+// CheckVersionResponse tells us if current version is outdated
+// and which version is the latest
+type CheckVersionResponse struct {
+	Outdated bool
+	Latest   string
+	Current  string
+}
 
-	switch binary {
-	case "kubectl":
-		ourCurrentVersion := strings.Replace(current, "v", "", 1)
-		res, err := latest.Check(&info.GithubTag, ourCurrentVersion)
-		if err == nil {
-			if !res.Outdated {
-				res.Current = ourCurrentVersion
-			}
-			return res, err
-		}
+func getKubeCtlStableRelease(url string) (*string, error) {
+	resp, err := http.Get(url)
+	if err != nil {
 		return nil, err
-
-	case "skaffold":
-		var current, err = CurrentVersion(binary, info.VersionCommand)
-		if err == nil {
-			ourCurrentVersion := strings.TrimRight(strings.Replace(current, "v", "", 1), "\n")
-			res, err := latest.Check(&info.GithubTag, ourCurrentVersion)
-			if err == nil {
-				if !res.Outdated {
-					res.Current = ourCurrentVersion
-				}
-				return res, err
-			}
-		}
-		return nil, err
-
-	case "minikube":
-		var current, err = CurrentVersion(binary, info.VersionCommand)
-		if err == nil {
-			ourCurrentVersion := strings.Replace(current, "v", "", 1)
-			res, err := latest.Check(&info.GithubTag, ourCurrentVersion)
-			if err == nil {
-				if !res.Outdated {
-					res.Current = ourCurrentVersion
-				}
-				return res, err
-			}
-		}
-		return nil, err
-
-	case "kustomize":
-		var current, err = CurrentVersion(binary, info.VersionCommand)
-		if err == nil {
-			ourCurrentVersion := strings.Replace(current, `kustomize/v`, "", 1)
-			res, err := latest.Check(&info.GithubTag, ourCurrentVersion)
-			if err == nil {
-				if !res.Outdated {
-					res.Current = ourCurrentVersion
-				}
-				return res, err
-			}
-		}
-		return nil, err
-
-	default:
-		return nil, fmt.Errorf("Kutu doesn't know how to check or update %s", binary)
 	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	version := strings.TrimRight(string(body), "\n")
+	if strings.HasPrefix(version, "v") {
+		return &version, err
+	}
+	return nil, fmt.Errorf("Error: could not get latest releases from GitHub (API rate exceeded?), try again later")
+}
+
+func getGitHubReleaseInfo(url string) ([]github.RepositoryRelease, error) {
+	var releases []github.RepositoryRelease
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(body, &releases)
+	if err == nil {
+		return releases, err
+	}
+	return nil, fmt.Errorf("Error: could not get latest releases from GitHub (API rate exceeded?), try again later")
+}
+
+// CheckVersion checks if our current version is outdated
+func CheckVersion(binary string, info config.BinaryConfig, current string) (*CheckVersionResponse, error) {
+	var latest *string
+	var err error
+	var releases []github.RepositoryRelease
+
+	if binary != "kubectl" {
+		releases, err = getGitHubReleaseInfo(info.GithubReleaseURL)
+		if err == nil {
+			for _, release := range releases {
+				latest = release.TagName
+				if strings.HasPrefix(*latest, info.VersionPrefix) && !*release.Prerelease {
+					break
+				}
+			}
+		}
+	} else {
+		latest, err = getKubeCtlStableRelease(info.GithubReleaseURL)
+	}
+
+	if err == nil {
+		return &CheckVersionResponse{
+			Latest:   *latest,
+			Current:  current,
+			Outdated: current != *latest,
+		}, nil
+	}
+
+	return nil, err
 }

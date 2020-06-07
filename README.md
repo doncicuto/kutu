@@ -45,5 +45,5 @@ Your YAML configuration can be stored in $HOME/.kutu.yaml or you can pass the fi
 Kutu has been built thanks to these awesome packages:
 
 - [Cobra](https://github.com/spf13/cobra)
-- [Go-Latest](https://github.com/tcnksm/go-latest)
 - [Color](https://github.com/gookit/color)
+- [Grab](https://github.com/cavaliercoder/grab)

@@ -54,9 +54,9 @@ var checkCmd = &cobra.Command{
 				if version, err := utils.CurrentVersion(binary, info.VersionCommand); err == nil {
 					if res, err := utils.CheckVersion(binary, info, version); err == nil {
 						if res.Outdated {
-							fmt.Printf("%s is %s. Current version is %s. Latest version is %s\n", cyan(binary), red("outdated"), version, res.Current)
+							fmt.Printf("%s is %s. Current version is %s. Latest version is %s\n", cyan(binary), red("outdated"), res.Current, res.Latest)
 						} else {
-							fmt.Printf("%s is %s. Latest version is %s\n", cyan(binary), green("up to date"), res.Current)
+							fmt.Printf("%s is %s. Latest version is %s\n", cyan(binary), green("up to date"), res.Latest)
 						}
 					} else {
 						fmt.Printf("%s.\n", red(err))

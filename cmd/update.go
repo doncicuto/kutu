@@ -62,9 +62,9 @@ var updateCmd = &cobra.Command{
 						res, err := utils.CheckVersion(binary, info, version)
 						if err == nil {
 							if res.Outdated {
-								updateError := utils.Update(binary, path, version)
+								updateError := utils.Update(binary, path, info.DownloadURL, res.Latest)
 								if updateError == nil {
-									fmt.Printf("%s has been %s. New version is %s.\n", cyan(binary), green("updated"), green(res.Current))
+									fmt.Printf("%s has been %s. New version is %s.\n", cyan(binary), green("updated"), green(res.Latest))
 								} else {
 									fmt.Printf("Error: %s\n", red(updateError))
 								}

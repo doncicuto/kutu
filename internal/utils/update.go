@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"path"
 	"runtime"
@@ -11,40 +12,53 @@ import (
 )
 
 // Update downloads new binaries from GitHub repositories
-func Update(binary string, filePath string, version string) error {
-	var url string
-	os := runtime.GOOS
+func Update(binary string, filePath string, downloadURL string, version string) error {
+	var url, tmpFilePath string
+	var fi os.FileInfo
+	goos := runtime.GOOS
 
-	switch binary {
-	case "kubectl":
-		url = fmt.Sprintf("https://storage.googleapis.com/kubernetes-release/release/%s/bin/%s/amd64/kubectl", version, os)
-
-	case "skaffold":
-		url = fmt.Sprintf("https://storage.googleapis.com/skaffold/releases/%s/skaffold-%s-amd64", version, os)
-
-	case "minikube":
-		url = fmt.Sprintf("https://github.com/kubernetes/minikube/releases/download/%s/minikube-%s-amd64", version, os)
-
-	case "kustomize":
-		url = fmt.Sprintf("https://github.com/kubernetes-sigs/kustomize/releases/download/%s/%s_%s_amd64.tar.gz", version, strings.Replace(version, "/", "_", 1), os)
-	}
-
+	// Set download url and temp file
 	if binary == "kustomize" {
-		tmpFilePath := fmt.Sprintf("/tmp/%s.tar.gz", strings.Replace(version, "/", "_", 1))
-		_, err := grab.Get(tmpFilePath, url)
+		url = fmt.Sprintf(downloadURL, version, strings.Replace(version, "/", "_", 1), goos)
+		tmpFilePath = fmt.Sprintf("/tmp/%s.tar.gz", strings.Replace(version, "/", "_", 1))
+	} else {
+		url = fmt.Sprintf(downloadURL, version, goos)
+		tmpFilePath = fmt.Sprintf("/tmp/%s", binary)
+	}
 
-		if err == nil {
-			_, cmdErr := exec.Command("tar", "xzf", tmpFilePath, "-C", path.Dir(filePath)).Output()
-			if cmdErr != nil {
-				return fmt.Errorf("Could not extract kustomize, you may not have enough privileges. Please re-run it using sudo")
-			}
-			return cmdErr
-		}
-		return err
-	}
-	_, err := grab.Get(filePath, url)
+	// Download release file
+	_, err := grab.Get(tmpFilePath, url)
 	if err != nil {
-		return fmt.Errorf("Could not update %s, you may not have enough privileges. Please re-run it using sudo", binary)
+		return fmt.Errorf("Could not download %s. Maybe url %s is no longer valid", binary, url)
 	}
+
+	// Get current permissions
+	fi, err = os.Lstat(filePath)
+	if err != nil {
+		return fmt.Errorf("Could not check permissions for %s. Please re-run kutu using sudo", filePath)
+	}
+	perms := fi.Mode().Perm()
+
+	// Extract or move downloaded file
+	if binary == "kustomize" {
+		// Extract file
+		_, err = exec.Command("tar", "xzf", tmpFilePath, "-C", path.Dir(filePath)).Output()
+		if err != nil {
+			return fmt.Errorf("Could not replace %s, you may not have enough privileges. Please re-run kutu using sudo", binary)
+		}
+	} else {
+		// Move file
+		err = os.Rename(tmpFilePath, filePath)
+		if err != nil {
+			return fmt.Errorf("Could not replace %s. Please re-run kutu using sudo", filePath)
+		}
+	}
+
+	// Set new permissions
+	err = os.Chmod(filePath, perms)
+	if err != nil {
+		return fmt.Errorf("Could not change %s permissions. Please re-run kutu using sudo", filePath)
+	}
+
 	return err
 }
