@@ -12,6 +12,8 @@ jobs:
     - name: compile and release
       uses: ngs/go-release.action@v1.0.2
       env:
+        # CGO_ENABLED=0 is added so we don't have problems witj ELF
+        # Reference: https://github.com/apex/up/issues/734
         CGO_ENABLED: 0
         GOARCH: amd64
         GOOS: linux

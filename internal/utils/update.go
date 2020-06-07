@@ -23,7 +23,7 @@ func Update(binary string, filePath string, version string) error {
 		url = fmt.Sprintf("https://storage.googleapis.com/skaffold/releases/%s/skaffold-%s-amd64", version, os)
 
 	case "minikube":
-		url = fmt.Sprintf("https://github.com/kubernetes/minikube/releases/download/%s/minikube-%s-x86_64", version, os)
+		url = fmt.Sprintf("https://github.com/kubernetes/minikube/releases/download/%s/minikube-%s-amd64", version, os)
 
 	case "kustomize":
 		url = fmt.Sprintf("https://github.com/kubernetes-sigs/kustomize/releases/download/%s/%s_%s_amd64.tar.gz", version, strings.Replace(version, "/", "_", 1), os)
@@ -44,7 +44,7 @@ func Update(binary string, filePath string, version string) error {
 	}
 	_, err := grab.Get(filePath, url)
 	if err != nil {
-		return fmt.Errorf("Could not extract %s, you may not have enough privileges. Please re-run it using sudo", binary)
+		return fmt.Errorf("Could not update %s, you may not have enough privileges. Please re-run it using sudo", binary)
 	}
 	return err
 }
