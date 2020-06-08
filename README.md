@@ -17,6 +17,8 @@ In order to download and update new versions just run:
 
 Kutu will replace your old binary with the new one.
 
+**_WARNING:_**  If you use brew to install K8s binaries, be warned that Kutu will replace your old binary file without brew's intervention so it could break your homebrew's workflow.
+
 **_WARNING:_**  If your K8s binaries are stored in paths requiring higher privileges to replace the binaries, please run kutu with sudo.
 
 If you only want to check if new versions are available for your binaries use the check command.

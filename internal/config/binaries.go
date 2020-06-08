@@ -12,7 +12,7 @@ type BinaryConfig struct {
 	DownloadURL      string
 }
 
-// Binaries List of binaries managed gby Kutu
+// Binaries List of binaries managed by Kutu
 var Binaries = make(map[string]BinaryConfig)
 
 func init() {
