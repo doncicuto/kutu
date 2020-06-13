@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+	"sync"
 
 	"github.com/gookit/color"
 	"github.com/muultipla/kutu/internal/utils"
@@ -48,35 +49,44 @@ var updateCmd = &cobra.Command{
 			selectedBinaries = strings.Split(flagBinaries, ",")
 		}
 
-		red := color.FgRed.Render
-		green := color.FgGreen.Render
-		cyan := color.FgCyan.Render
+		var wg sync.WaitGroup
 
 		for binary, info := range config.Binaries {
 			if len(selectedBinaries) == 0 || utils.Contains(selectedBinaries, binary) {
+				wg.Add(1)
+				go update(binary, info, &wg)
+			}
+		}
+		wg.Wait()
+	},
+}
 
-				path, err := exec.LookPath(binary)
-				if err == nil {
-					version, err := utils.CurrentVersion(binary, info.VersionCommand)
-					if err == nil {
-						res, err := utils.CheckVersion(binary, info, version)
-						if err == nil {
-							if res.Outdated {
-								updateError := utils.Update(binary, path, info.DownloadURL, res.Latest)
-								if updateError == nil {
-									fmt.Printf("%s has been %s. New version is %s.\n", cyan(binary), green("updated"), green(res.Latest))
-								} else {
-									fmt.Printf("Error: %s\n", red(updateError))
-								}
-							} else {
-								fmt.Printf("%s is %s. No need to update it.\n", cyan(binary), green("up to date"))
-							}
-						}
+func update(binary string, info config.BinaryConfig, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	red := color.FgRed.Render
+	green := color.FgGreen.Render
+	cyan := color.FgCyan.Render
+
+	path, err := exec.LookPath(binary)
+	if err == nil {
+		version, err := utils.CurrentVersion(binary, info.VersionCommand)
+		if err == nil {
+			res, err := utils.CheckVersion(binary, info, version)
+			if err == nil {
+				if res.Outdated {
+					updateError := utils.Update(binary, path, info.DownloadURL, res.Latest)
+					if updateError == nil {
+						fmt.Printf("%s has been %s. New version is %s.\n", cyan(binary), green("updated"), green(res.Latest))
+					} else {
+						fmt.Printf("Error: %s\n", red(updateError))
 					}
+				} else {
+					fmt.Printf("%s is %s. No need to update it.\n", cyan(binary), green("up to date"))
 				}
 			}
 		}
-	},
+	}
 }
 
 func init() {

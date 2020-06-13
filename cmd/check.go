@@ -22,6 +22,7 @@ package cmd
 import (
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/gookit/color"
 	"github.com/muultipla/kutu/internal/config"
@@ -44,27 +45,38 @@ var checkCmd = &cobra.Command{
 			selectedBinaries = strings.Split(flagBinaries, ",")
 		}
 
-		red := color.FgRed.Render
-		green := color.FgGreen.Render
-		cyan := color.FgCyan.Render
+		var wg sync.WaitGroup
 
 		for binary, info := range config.Binaries {
 
 			if len(selectedBinaries) == 0 || utils.Contains(selectedBinaries, binary) {
-				if version, err := utils.CurrentVersion(binary, info.VersionCommand); err == nil {
-					if res, err := utils.CheckVersion(binary, info, version); err == nil {
-						if res.Outdated {
-							fmt.Printf("%s is %s. Current version is %s. Latest version is %s\n", cyan(binary), red("outdated"), res.Current, res.Latest)
-						} else {
-							fmt.Printf("%s is %s. Latest version is %s\n", cyan(binary), green("up to date"), res.Latest)
-						}
-					} else {
-						fmt.Printf("%s.\n", red(err))
-					}
-				}
+				wg.Add(1)
+				go check(binary, info, &wg)
 			}
 		}
+
+		wg.Wait()
 	},
+}
+
+func check(binary string, info config.BinaryConfig, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	red := color.FgRed.Render
+	green := color.FgGreen.Render
+	cyan := color.FgCyan.Render
+
+	if version, err := utils.CurrentVersion(binary, info.VersionCommand); err == nil {
+		if res, err := utils.CheckVersion(binary, info, version); err == nil {
+			if res.Outdated {
+				fmt.Printf("%s is %s. Current version is %s. Latest version is %s\n", cyan(binary), red("outdated"), res.Current, res.Latest)
+			} else {
+				fmt.Printf("%s is %s. Latest version is %s\n", cyan(binary), green("up to date"), res.Latest)
+			}
+		} else {
+			fmt.Printf("%s.\n", red(err))
+		}
+	}
 }
 
 func init() {
