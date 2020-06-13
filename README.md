@@ -42,6 +42,10 @@ Your YAML configuration can be stored in $HOME/.kutu.yaml or you can pass the fi
 
 `kutu check --config /tmp/kutu.yaml`
 
+## Screenshots
+
+![Kutu Screenshot](./img/kutu_screenshot_1.png)
+
 ## Acknowledgements
 
 Kutu has been built thanks to these awesome packages:
