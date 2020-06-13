@@ -31,7 +31,7 @@ func init() {
 	}
 
 	TestBinaries["skaffold"] = TestBinaryConfig{
-		LatestVersion: "v1.10.1",
+		LatestVersion: "v1.11.0",
 		OldVersion:    "v1.9.1",
 	}
 

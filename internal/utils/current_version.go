@@ -9,25 +9,6 @@ import (
 	"strings"
 )
 
-type minikubeVersion struct {
-	Commit          string
-	MinikubeVersion string
-}
-
-type kubectlVersion struct {
-	ClientVersion struct {
-		Major        string
-		Minor        string
-		GitVersion   string
-		GitCommit    string
-		GitTreeState string
-		BuildDate    string
-		GoVersion    string
-		Compiler     string
-		Platform     string
-	}
-}
-
 // CurrentVersion gets the current version for our binary
 // executing the command in a shell and parsing the output.
 func CurrentVersion(binary string, versionCommand []string) (string, error) {
@@ -35,7 +16,19 @@ func CurrentVersion(binary string, versionCommand []string) (string, error) {
 	case "kubectl":
 		out, err := exec.Command(binary, versionCommand...).Output()
 		if err == nil {
-			var version kubectlVersion
+			var version struct {
+				ClientVersion struct {
+					Major        string
+					Minor        string
+					GitVersion   string
+					GitCommit    string
+					GitTreeState string
+					BuildDate    string
+					GoVersion    string
+					Compiler     string
+					Platform     string
+				}
+			}
 			err := json.Unmarshal(out, &version)
 			if err == nil {
 				return string(version.ClientVersion.GitVersion), nil
@@ -49,7 +42,10 @@ func CurrentVersion(binary string, versionCommand []string) (string, error) {
 	case "minikube":
 		out, err := exec.Command(binary, versionCommand...).Output()
 		if err == nil {
-			var version minikubeVersion
+			var version struct {
+				Commit          string
+				MinikubeVersion string
+			}
 			err := json.Unmarshal(out, &version)
 			if err == nil {
 				return string(version.MinikubeVersion), nil
