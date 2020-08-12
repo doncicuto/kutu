@@ -26,22 +26,22 @@ var TestBinaries = make(map[string]TestBinaryConfig)
 func init() {
 
 	TestBinaries["kubectl"] = TestBinaryConfig{
-		LatestVersion: "v1.18.3",
+		LatestVersion: "v1.18.6",
 		OldVersion:    "v1.17.6",
 	}
 
 	TestBinaries["skaffold"] = TestBinaryConfig{
-		LatestVersion: "v1.11.0",
+		LatestVersion: "v1.13.1",
 		OldVersion:    "v1.9.1",
 	}
 
 	TestBinaries["minikube"] = TestBinaryConfig{
-		LatestVersion: "v1.11.0",
+		LatestVersion: "v1.12.2",
 		OldVersion:    "v1.10.1",
 	}
 
 	TestBinaries["kustomize"] = TestBinaryConfig{
-		LatestVersion: "kustomize/v3.6.1",
+		LatestVersion: "kustomize/v3.8.1",
 		OldVersion:    "kustomize/v3.6.0",
 	}
 }
