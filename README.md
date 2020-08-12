@@ -1,6 +1,6 @@
 # Kutu - Kubernetes Useful Tools Updater
 
-When using K8s in Muultipla we have several tools that we use to deploy and build our applications. Most of these tools are binaries that change frequently so we want to check if these binaries have a new version, download the new version and install it easily.
+Kutu is now beta. When using K8s in Muultipla we have several tools that we use to deploy and build our applications. Most of these tools are binaries that change frequently so we want to check if these binaries have a new version, download the new version and install it easily.
 
 Kutu will check if a new release is available and update it for the following K8s binaries:
 
@@ -8,6 +8,8 @@ Kutu will check if a new release is available and update it for the following K8
 - skaffold
 - minikube
 - kustomize
+
+You can download and find installation instructions visiting the [releases section](https://github.com/muultipla/kutu/releases) in GitHub.
 
 **_NOTE:_**  Kutu currently only checks and update K8s binaries that exists already in your system, in a future release Kutu may also install them.
 
@@ -41,6 +43,10 @@ binaries: skaffold,kubectl
 Your YAML configuration can be stored in $HOME/.kutu.yaml or you can pass the file path using -c / --config:
 
 `kutu check --config /tmp/kutu.yaml`
+
+## Bugs, improvements
+
+Please, if you've found Kutu useful open an issue and tell us what you need.
 
 ## Screenshots
 
